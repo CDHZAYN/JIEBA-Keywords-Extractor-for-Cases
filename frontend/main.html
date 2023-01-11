@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="cmn-hans">
+
+<head>
+    <meta name="author" content="201250105葛家辰,201250102吴筱权,201250103陈广华">
+    <meta name="keywords" content="司法,大作业">
+    <meta http-equiv="Content-Type"content="text/html;charset=utf-8">
+    <title>司法大作业-前端展示</title>
+    <link rel = "shortcut icon" href = "icon/shortcut_icon.ico">
+    <link rel = "stylesheet" href = "css/style_main.css">
+    <script>
+        var selectedPage="arti";
+        function setDisabled(selectPage){
+            if(selectPage!=selectedPage)
+                document.getElementById("innersite").innerHTML="<iframe src='innersite/"+selectPage+".html' id='frame'></frame>";
+            selectedPage=selectPage;
+        }
+    </script>
+</head>
+
+<body>
+    <aside>
+        <h1 id="menu_title">memu</h1>
+        <a href="###" id="arti" onclick="setDisabled('arti')">手动标注</a>
+        <a href="###" id="auto" onclick="setDisabled('auto')">勾选标注</a>
+        <a href="###" id="info" onclick="setDisabled('info')">网页信息</a>
+    </aside>
+    <div id="innersite">
+        <iframe src="innersite/arti.html" id="frame"></frame>
+    </div>
+</body>
+
+</html>

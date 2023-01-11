@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="cmn-hans">
+
+<head>
+    <meta name="author" content="201250105葛家辰,201250102吴筱权,201250103陈广华">
+    <meta name="keywords" content="司法,大作业">
+    <meta http-equiv="Content-Type"content="text/html;charset=utf-8">
+    <title>司法大作业-前端展示-auto</title>
+    <link rel = "shortcut icon" href = "../icon/shortcut_icon.ico">
+    <link rel = "stylesheet" href = "../css/style_auto.css">
+    <script>
+        var oldId="";
+        var text;
+        var checkStatus = new Array(7);
+
+        function readFile(){
+            var reader = new FileReader();
+            reader.onload = function(){
+                document.getElementById("textarea").value=reader.result;
+                text = reader.result;
+            }
+            reader.readAsText(document.getElementById("file").files[0]);
+        }
+
+        function updateText(){
+            text=document.getElementById("textarea").value;
+        }
+
+        function generateKeywords(){
+            document.getElementById("tags").style.display="none";
+            document.getElementById("tags_save").style.display="none";
+
+            var getKeywords = new XMLHttpRequest();
+            getKeywords.onreadystatechange=function(){
+		        if (getKeywords.readyState==4 && getKeywords.status==200){
+                    console.log(1);
+                    document.getElementById("tag_cont").innerHTML="";
+
+                    //关键词生成
+                    var tags = getKeywords.responseText;
+                    var array = eval(tags);
+
+                    //名词
+                    var nounKeys = document.createElement("div");
+                    nounKeys.className="keywords";
+                    for(var i=0;i<array[0].length;i++){
+                        var tempKey = "<label class='auto_label'><input type='checkbox' class='auto_check'>"+array[0][i]+"</label>";
+                        nounKeys.innerHTML+=tempKey;
+                    }
+                    var nounTitle = document.createElement("h5");
+                    nounTitle.innerHTML="名词";
+                    document.getElementById("tag_cont").appendChild(nounTitle);
+                    document.getElementById("tag_cont").appendChild(nounKeys);
+                    
+                    //动词
+                    var verbKeys = document.createElement("div");
+                    verbKeys.className="keywords";
+                    for(var i=0;i<array[1].length;i++){
+                        var tempKey = "<label class='auto_label'><input type='checkbox' class='auto_check'>"+array[1][i]+"</label>";
+                        verbKeys.innerHTML+=tempKey;
+                    }
+                    var verbTitle = document.createElement("h5");
+                    verbTitle.innerHTML="动词";
+                    document.getElementById("tag_cont").appendChild(verbTitle);
+                    document.getElementById("tag_cont").appendChild(verbKeys);
+
+                    //形容词
+                    var adjKeys = document.createElement("div");
+                    adjKeys.className="keywords";
+                    for(var i=0;i<array[2].length;i++){
+                        var tempKey = "<label class='auto_label'><input type='checkbox' class='auto_check'>"+array[2][i]+"</label>";
+                        adjKeys.innerHTML+=tempKey;
+                    }
+                    var adjTitle = document.createElement("h5");
+                    adjTitle.innerHTML="形容词";
+                    document.getElementById("tag_cont").appendChild(adjTitle);
+                    document.getElementById("tag_cont").appendChild(adjKeys);
+
+                    //标记记录初始化
+                    var inputs = document.getElementsByClassName("auto_check");
+                    for(var i=1;i<=6;i++){
+                        checkStatus[i]="";
+                        for(var j=0;j<inputs.length;j++)
+                            checkStatus[i]+='0';
+                    }
+                    for(var i=0;i<inputs.length;i++){
+                        inputs[i].checked=false;
+                    }
+                    document.getElementById("tag_cont_arti").innerHTML="";
+                    
+                    //开放内容展示
+			        document.getElementById("tags").style.display="block";
+                    document.getElementById("tags_save").style.display="initial";
+                }
+            }
+
+            getKeywords.open("POST","http://127.0.0.1:8888/",true);
+            getKeywords.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+            updateText();
+            getKeywords.send(text);
+        }
+
+        function changeCata(newId){
+            if(oldId!="")
+                document.getElementById(oldId).className="";
+            document.getElementById(newId).className="targeted";
+            if(newId!=oldId){
+                var inputs = document.getElementsByClassName("auto_check");
+                checkStatus[parseInt(oldId)]="";
+                for(var i=0;i<inputs.length;i++){
+                    if(inputs[i].checked)
+                        checkStatus[parseInt(oldId)]+="1";
+                    else
+                        checkStatus[parseInt(oldId)]+="0";
+                }
+                for(var i=0;i<inputs.length;i++){
+                    if(checkStatus[parseInt(newId)][i]=='1')
+                        inputs[i].checked=true;
+                    else
+                        inputs[i].checked=false;
+                }
+                oldId=newId;
+            }
+        }
+
+        function createNewTag(){
+            var tagField=document.getElementById("tag_cont_arti");
+            var newTag=document.createElement("div");
+            newTag.className="tag";
+            newTag.innerHTML="<input type='text' list='catas' class='cata_arti' placeholder='输入或选择标注类型'><input type='text' class='cont_arti'>";
+            tagField.appendChild(newTag);
+        }
+
+        function deleteTags(){
+            document.getElementById("tag_cont_arti").innerHTML="";
+        }
+
+        function download(fileContent, fileName){
+            // 创建隐藏的可下载链接
+            var dlFile = document.createElement('a');
+            dlFile.download = fileName;
+            dlFile.style.display = 'none';
+            // 字符内容转变成blob地址
+            var blob = new Blob([fileContent]);
+            dlFile.href = URL.createObjectURL(blob);
+            // 触发点击
+            document.body.appendChild(dlFile);
+            dlFile.click();
+            // 然后移除
+            document.body.removeChild(dlFile);
+        }
+
+        function downloadCase(){
+            if(text!=undefined)
+                download(text, "案件文本.txt");
+            else
+                download("","案件文本.txt");
+        }
+
+        function downloadTags(){
+            var preJson={
+                当事人: "",
+                性别: "",
+                民族: "",
+                出生地: "",
+                案由: "",
+                相关法院: ""
+            }
+            var tags = document.getElementsByClassName("auto_label");
+            var inputs = document.getElementsByClassName("auto_check");
+            checkStatus[parseInt(oldId)]="";
+            for(var i=0;i<inputs.length;i++){
+                if(inputs[i].checked)
+                    checkStatus[parseInt(oldId)]+="1";
+                else
+                    checkStatus[parseInt(oldId)]+="0";
+            }
+
+            for(var i=0;i<tags.length;i++){
+                if(checkStatus[1][i]=='1')
+                    preJson.当事人+=","+tags[i].innerText;
+                if(checkStatus[2][i]=='1')
+                    preJson.性别+=","+tags[i].innerText;
+                if(checkStatus[3][i]=='1')
+                    preJson.民族+=","+tags[i].innerText;
+                if(checkStatus[4][i]=='1')
+                    preJson.出生地+=","+tags[i].innerText;
+                if(checkStatus[5][i]=='1')
+                    preJson.案由+=","+tags[i].innerText;
+                if(checkStatus[6][i]=='1')
+                    preJson.相关法院+=","+tags[i].innerText;
+            }
+            if(preJson.当事人.length==0)
+                delete preJson.当事人;
+            else
+                preJson.当事人 = preJson.当事人.substring(1);
+            if(preJson.性别.length==0)
+                delete preJson.性别;
+            else
+                preJson.性别 = preJson.性别.substring(1);
+            if(preJson.民族.length==0)
+                delete preJson.民族;
+            else
+                preJson.民族 = preJson.民族.substring(1);
+            if(preJson.出生地.length==0)
+                delete preJson.出生地;
+            else
+                preJson.出生地 = preJson.出生地.substring(1);
+            if(preJson.案由.length==0)
+                delete preJson.案由;
+            else
+                preJson.案由 = preJson.案由.substring(1);
+            if(preJson.相关法院.length==0)
+                delete preJson.相关法院;
+            else
+                preJson.相关法院 = preJson.相关法院.substring(1);
+
+            var key_arti = document.getElementsByClassName("cata_arti");
+            var value_arti = document.getElementsByClassName("cont_arti");
+            for(var i=0;i<key_arti.length;i++){
+                var key = key_arti[i].value;
+                var value = value_arti[i].value;
+                if(key==""||value=="")
+                    continue;
+                else if(preJson.hasOwnProperty(key)==false){
+                    var cmand = "preJson."+key+"='';";
+                    eval(cmand);
+                    cmand = "preJson."+key+"+=\""+value+"\";";
+                    eval(cmand);
+                }
+                else
+                    preJson[key]+=","+value;
+            }
+
+            var Json = JSON.stringify(preJson, undefined, 4);
+            download(Json, "标注.json");
+        }
+
+    </script>
+</head>
+
+<body>
+    <form>
+        <button type="button" onclick="document.getElementById('file').click();">上传案例文件(.txt)</button>
+        <input type="file" id="file" onchange="readFile()" style="display: none;">
+        <textarea id="textarea" oninput="updateText()" placeholder="请输入案件..."></textarea>
+        <button type="button" onclick="downloadCase()">保存案件</button>
+        <button type="button" onclick="generateKeywords()">生成标注</button>
+        <div id="tags" style="display: none;">
+            <h4>标注类型</h4>
+            <div id="tag_cata">
+                <a href="###" id="1" onclick="changeCata('1')">当事人</a><a href="###" id="2" onclick="changeCata('2')">性别</a><a href="###" id="3" onclick="changeCata('3')">民族</a><a href="###" id="4" onclick="changeCata('4')">出生地</a><a href="###" id="5" onclick="changeCata('5')">案由</a><a href="###" id="6" onclick="changeCata('6')">相关法院</a>
+            </div>
+            <h4>关键词</h4>
+            <div id="tag_cont">
+            </div>
+            <h4>手动补充</h4>
+            <div id="tag_arti">
+                <datalist id="catas">
+                    <option>当事人</option>
+                    <option>性别</option>
+                    <option>民族</option>
+                    <option>出生地</option>
+                    <option>案由</option>
+                    <option>相关法院</option>
+                </datalist>
+                <button type="button" onclick="createNewTag()">添加一条标注</button>
+                <button type="button" onclick="deleteTags()">刷新手动标注</button>
+                <p style="display: inline-block; font-size: 15px; font-weight: bold; margin: 20px; color: #2a4841a6">提示：标注类型开头不能为数字或特殊符号</p>
+                <div id="tag_cont_arti"></div>
+            </div>
+        </div>
+        <button id="tags_save" type="button" onclick="downloadTags()" style="display: none;">保存标注</button>
+    </form>
+</body>
+
+</html>

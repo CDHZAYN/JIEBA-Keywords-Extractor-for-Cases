@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="cmn-hans">
+
+<head>
+    <meta name="author" content="201250105葛家辰,201250102吴筱权,201250103陈广华">
+    <meta name="keywords" content="司法,大作业">
+    <meta http-equiv="Content-Type"content="text/html;charset=utf-8">
+    <title>司法大作业-前端展示-arti</title>
+    <link rel = "shortcut icon" href = "../icon/shortcut_icon.ico">
+    <link rel = "stylesheet" href = "../css/style_arti.css">
+    <script>
+        function readFile(){
+            var reader = new FileReader();
+            reader.onload = function(){
+                document.getElementById("textarea").value=reader.result;
+                text = reader.result;
+            }
+            reader.readAsText(document.getElementById("file").files[0]);
+        }
+
+        function updateText(){
+            text=document.getElementById("textarea").value;
+        }
+
+        function createNewTag(){
+            var tagField=document.getElementById("tags_cont");
+            var newTag=document.createElement("div");
+            newTag.className="tag";
+            newTag.innerHTML="<input type='text' list='catas' class='cata' placeholder='输入或选择标注类型'><input type='text' class='cont'>";
+            tagField.appendChild(newTag);
+        }
+
+        function deleteTag(){
+            document.getElementById("tags_cont").innerHTML="";
+        }
+
+        function download(fileContent, fileName){
+            // 创建隐藏的可下载链接
+            var dlFile = document.createElement('a');
+            dlFile.download = fileName;
+            dlFile.style.display = 'none';
+            // 字符内容转变成blob地址
+            var blob = new Blob([fileContent]);
+            dlFile.href = URL.createObjectURL(blob);
+            // 触发点击
+            document.body.appendChild(dlFile);
+            dlFile.click();
+            // 然后移除
+            document.body.removeChild(dlFile);
+        }
+
+        function downloadCase(){
+            if(text!=undefined)
+                download(text, "案件文本.txt");
+            else
+                download("","案件文本.txt");
+        }
+
+        function downloadTags(){
+            var preJson={};
+            var tags = document.getElementsByTagName("input");
+            for(var i=1;i<tags.length;i+=2){
+                var key = tags[i].value;
+                var value = tags[i+1].value;
+                if(key==""||value=="")
+                    continue;
+                else if(preJson.hasOwnProperty(key)==false){
+                    var cmand = "preJson."+key+"='';";
+                    eval(cmand);
+                    cmand = "preJson."+key+"+=\""+value+"\";";
+                    eval(cmand);
+                }
+                else
+                    preJson[key]+=","+value;
+            }
+            var Json = JSON.stringify(preJson, undefined, 4);
+            download(Json, "标注.json");
+        }
+    </script>
+</head>
+
+<body>
+    <form>
+        <button type="button" onclick="document.getElementById('file').click();">上传案例文件(.txt)</button>
+        <input type="file" id="file" onchange="readFile()" style="display: none;">
+        <textarea id="textarea" placeholder="请输入案件..." oninput="updateText()"></textarea>
+        <button type="button" onclick="downloadCase()">保存案件</button>
+        <div id="tags">
+            <button type="button" onclick="createNewTag()">添加一条标注</button>
+            <button type="button" onclick="deleteTag()">刷新标注</button>
+            <p style="display: inline-block; font-size: 15px; font-weight: bold; margin: 20px; color: #2a4841a6">提示：标注类型开头不能为数字或特殊符号</p>
+            <datalist id="catas">
+                <option>当事人</option>
+                <option>性别</option>
+                <option>民族</option>
+                <option>出生地</option>
+                <option>案由</option>
+                <option>相关法院</option>
+            </datalist>
+            <div id="tags_cont"></div>
+        </div>
+        <button type="button" onclick="downloadTags()">保存标注</button>
+    </form>
+</body>
+
+</html>
